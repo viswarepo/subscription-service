@@ -1,1 +1,1 @@
-# product-recommendation-service
+# subscription-service
