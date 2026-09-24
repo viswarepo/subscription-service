@@ -22,8 +22,8 @@ import java.util.UUID;
 public class Customer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     /** Tenant identifier. Every row in every table in this service carries one. */
     @Column(nullable = false)
@@ -34,10 +34,10 @@ public class Customer {
     private String externalId;
 
     @Column(nullable = false)
-    private String email;
+    private String email="9876543210";
 
-    //@Column(nullable = false)
-    //private String mobile;
+    @Column(nullable = false)
+    private String mobile;
 
     private String name;
 
@@ -48,14 +48,15 @@ public class Customer {
         // JPA
     }
 
-    public Customer(String organizationId, String email, String name) {
+    public Customer(String organizationId, String email, String name, String mobile) {
         this.organizationId = organizationId;
-        //this.externalId = externalId;
+        this.externalId = externalId;
         this.email = email;
         this.name = name;
+        this.mobile = mobile;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -71,7 +72,7 @@ public class Customer {
         return email;
     }
 
-    //public String getMobile() { return mobile; }
+    public String getMobile() { return mobile; }
 
     public void setEmail(String email) {
         this.email = email;

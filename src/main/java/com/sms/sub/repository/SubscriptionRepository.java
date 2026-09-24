@@ -9,16 +9,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
+public interface SubscriptionRepository extends JpaRepository<Subscription, String> {
 
-    Optional<Subscription> findByIdAndOrganizationId(Long id, String organizationId);
+    Optional<Subscription> findByIdAndOrganizationId(String id, String organizationId);
 
-    List<Subscription> findByOrganizationIdAndCustomer_Id(String organizationId, Long customerId);
+    List<Subscription> findByOrganizationIdAndCustomer_Id(String organizationId, String customerId);
 
     List<Subscription> findByOrganizationId(String organizationId);
 
     List<Subscription> findByOrganizationIdAndCustomer_IdAndProductCodeAndStatusIn(
-            String organizationId, Long customerId, String productCode, Collection<SubscriptionStatus> statuses);
+            String organizationId, String customerId, String productCode, Collection<SubscriptionStatus> statuses);
 
     /**
      * Intentionally NOT organization-scoped: the billing run is a cross-tenant

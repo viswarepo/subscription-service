@@ -14,8 +14,8 @@ import java.time.Instant;
 public class SubscriptionEvent {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     /** Tenant identifier, denormalized from the owning Subscription so audit queries stay tenant-scoped. */
     @Column(nullable = false)
@@ -45,7 +45,7 @@ public class SubscriptionEvent {
         this.notes = notes;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 

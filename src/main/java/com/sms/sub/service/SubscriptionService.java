@@ -1,14 +1,22 @@
 package com.sms.sub.service;
 
 import com.sms.sub.domain.*;
+import com.sms.sub.dto.RegisterRequest;
+import com.sms.sub.event.SubscriptionCreatedEvent;
+import com.sms.sub.event.SubscriptionEventPublisher;
 import com.sms.sub.exception.ConflictException;
 import com.sms.sub.exception.InvalidSubscriptionStateException;
 import com.sms.sub.exception.ResourceNotFoundException;
 import com.sms.sub.repository.CustomerRepository;
 import com.sms.sub.repository.SubscriptionEventRepository;
 import com.sms.sub.repository.SubscriptionRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+//import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,6 +26,8 @@ import java.util.Set;
 @Service
 @Transactional
 public class SubscriptionService {
+    /* Kafka even publisher/Producer */
+    private final SubscriptionEventPublisher subscriptionEventPublisher;
 
     /** Statuses that count as "the customer already has a live subscription to this product". */
     private static final Set<SubscriptionStatus> LIVE_STATUSES =
@@ -28,25 +38,30 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionEventRepository eventRepository;
 
-    public SubscriptionService(CustomerRepository customerRepository,
-                                SubscriptionRepository subscriptionRepository,
-                                SubscriptionEventRepository eventRepository) {
+    @Value("${user-service.url}")
+    private String userServiceBaseUrl;
+
+    @Value("${internal.api-key}")
+    private String internalApiKey;
+
+    //private final RestTemplate restTemplate;
+
+    public SubscriptionService(SubscriptionEventPublisher subscriptionEventPublisher, CustomerRepository customerRepository,
+                               SubscriptionRepository subscriptionRepository,
+                               SubscriptionEventRepository eventRepository) {
+        this.subscriptionEventPublisher = subscriptionEventPublisher;
         this.customerRepository = customerRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.eventRepository = eventRepository;
     }
 
-    // ---------------------------------------------------------------- Customers
+    public Customer createCustomer(String organizationId, String email, String name, String mobile) {
 
-    public Customer createCustomer(String organizationId, String email, String name) {
-        /*if (customerRepository.existsByOrganizationIdAndExternalId(organizationId, externalId)) {
-            throw new ConflictException("Customer already exists in this organization: " + externalId);
-        }*/
-        return customerRepository.save(new Customer(organizationId, email, name));
+        return customerRepository.save(new Customer(organizationId, email, name,mobile));
     }
 
     @Transactional(readOnly = true)
-    public Customer getCustomer(String organizationId, Long customerId) {
+    public Customer getCustomer(String organizationId, String customerId) {
         return customerRepository.findByIdAndOrganizationId(customerId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + customerId));
     }
@@ -56,14 +71,12 @@ public class SubscriptionService {
         return customerRepository.findByOrganizationId(organizationId);
     }
 
-    // ---------------------------------------------------------------- Creation
-
     /**
      * Creates a new subscription. Starts TRIALING if trialDays > 0, otherwise ACTIVE
      * immediately. Refuses to create a second live (non-terminal) subscription for
      * the same customer + product — call changePlan on the existing one instead.
      */
-    public Subscription createSubscription(String organizationId, Long customerId, String productCode, String planCode,
+    public Subscription createSubscription(String organizationId, String customerId, String productCode, String planCode,
                                             int planVersion, CurrencyCode currency, BillingCycle billingCycle,
                                             BigDecimal unitAmount, int trialDays) {
         Customer customer = getCustomer(organizationId, customerId);
@@ -92,11 +105,28 @@ public class SubscriptionService {
 
         subscriptionRepository.save(sub);
         recordEvent(sub, SubscriptionEventType.CREATED, "Subscription created in status " + sub.getStatus());
+
+        SubscriptionCreatedEvent event = SubscriptionCreatedEvent.of(
+                sub.getId(),
+                organizationId,
+                customer.getId(),           // however you reference the Customer here
+                customer.getEmail(),
+                customer.getName(),
+                productCode,                 // whatever the actual local variable/param name is
+                planCode,
+                planVersion,
+                unitAmount,
+                currency.name(),              // .toString() if currency isn't an enum
+                billingCycle.name(),          // .toString() if billingCycle isn't an enum
+                trialDays);
+        subscriptionEventPublisher.publishSubscriptionCreated(event);
+
+
         return sub;
     }
 
     @Transactional(readOnly = true)
-    public Subscription getSubscription(String organizationId, Long subscriptionId) {
+    public Subscription getSubscription(String organizationId, String subscriptionId) {
         return subscriptionRepository.findByIdAndOrganizationId(subscriptionId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Subscription not found: " + subscriptionId));
     }
@@ -108,19 +138,19 @@ public class SubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public List<Subscription> getSubscriptionsForCustomer(String organizationId, Long customerId) {
+    public List<Subscription> getSubscriptionsForCustomer(String organizationId, String customerId) {
         return subscriptionRepository.findByOrganizationIdAndCustomer_Id(organizationId, customerId);
     }
 
     @Transactional(readOnly = true)
-    public List<SubscriptionEvent> getEvents(String organizationId, Long subscriptionId) {
+    public List<SubscriptionEvent> getEvents(String organizationId, String subscriptionId) {
         return eventRepository.findBySubscription_IdAndOrganizationIdOrderByOccurredAtDesc(subscriptionId, organizationId);
     }
 
     // ---------------------------------------------------------------- Trial / payment outcomes
 
     /** Converts a trial to a paid subscription immediately (e.g. customer added a card and confirmed early). */
-    public Subscription convertTrial(String organizationId, Long subscriptionId) {
+    public Subscription convertTrial(String organizationId, String subscriptionId) {
         Subscription sub = getSubscription(organizationId, subscriptionId);
         validateTransition(sub.getStatus(), SubscriptionStatus.ACTIVE);
 
@@ -134,7 +164,7 @@ public class SubscriptionService {
     }
 
     /** Records a successful charge (trial conversion or renewal retry) and (re)activates the subscription. */
-    public Subscription recordPaymentSuccess(String organizationId, Long subscriptionId) {
+    public Subscription recordPaymentSuccess(String organizationId, String subscriptionId) {
         Subscription sub = getSubscription(organizationId, subscriptionId);
         if (sub.getStatus() == SubscriptionStatus.TRIALING) {
             return convertTrial(organizationId, subscriptionId);
@@ -147,7 +177,7 @@ public class SubscriptionService {
     }
 
     /** Records a failed renewal/conversion charge and moves the subscription into dunning. */
-    public Subscription recordPaymentFailure(String organizationId, Long subscriptionId) {
+    public Subscription recordPaymentFailure(String organizationId, String subscriptionId) {
         Subscription sub = getSubscription(organizationId, subscriptionId);
         validateTransition(sub.getStatus(), SubscriptionStatus.PAST_DUE);
         sub.setStatus(SubscriptionStatus.PAST_DUE);
@@ -163,7 +193,7 @@ public class SubscriptionService {
      * scheduled for period end, finalizes the cancellation instead of renewing.
      * If a plan change was scheduled, applies it as part of the renewal.
      */
-    public Subscription renew(String organizationId, Long subscriptionId) {
+    public Subscription renew(String organizationId, String subscriptionId) {
         Subscription sub = getSubscription(organizationId, subscriptionId);
         if (sub.getStatus() != SubscriptionStatus.ACTIVE) {
             throw new InvalidSubscriptionStateException(
@@ -208,7 +238,7 @@ public class SubscriptionService {
      * difference here — see README). If not immediate, the change is staged
      * and applied automatically on the next renewal.
      */
-    public Subscription changePlan(String organizationId, Long subscriptionId, String newPlanCode, int newPlanVersion,
+    public Subscription changePlan(String organizationId, String subscriptionId, String newPlanCode, int newPlanVersion,
                                     BigDecimal newUnitAmount, BillingCycle newBillingCycle, boolean immediate) {
         Subscription sub = getSubscription(organizationId, subscriptionId);
         if (sub.getStatus() != SubscriptionStatus.ACTIVE
@@ -243,7 +273,7 @@ public class SubscriptionService {
      * take effect at the current period's end (status unchanged until then);
      * atPeriodEnd=false cancels immediately.
      */
-    public Subscription cancel(String organizationId, Long subscriptionId, boolean atPeriodEnd) {
+    public Subscription cancel(String organizationId, String subscriptionId, boolean atPeriodEnd) {
         Subscription sub = getSubscription(organizationId, subscriptionId);
         if (sub.getStatus() == SubscriptionStatus.CANCELED || sub.getStatus() == SubscriptionStatus.EXPIRED) {
             throw new InvalidSubscriptionStateException("Subscription is already " + sub.getStatus());
@@ -269,7 +299,7 @@ public class SubscriptionService {
     }
 
     /** Undoes a scheduled (not-yet-effective) cancellation. An already-CANCELED subscription cannot be reactivated — create a new one instead. */
-    public Subscription reactivate(String organizationId, Long subscriptionId) {
+    public Subscription reactivate(String organizationId, String subscriptionId) {
         Subscription sub = getSubscription(organizationId, subscriptionId);
         if (!sub.isCancelAtPeriodEnd()) {
             throw new InvalidSubscriptionStateException(
@@ -284,7 +314,7 @@ public class SubscriptionService {
 
     // ---------------------------------------------------------------- Pause / resume
 
-    public Subscription pause(String organizationId, Long subscriptionId) {
+    public Subscription pause(String organizationId, String subscriptionId) {
         Subscription sub = getSubscription(organizationId, subscriptionId);
         validateTransition(sub.getStatus(), SubscriptionStatus.PAUSED);
         sub.setStatus(SubscriptionStatus.PAUSED);
@@ -293,7 +323,7 @@ public class SubscriptionService {
         return sub;
     }
 
-    public Subscription resume(String organizationId, Long subscriptionId) {
+    public Subscription resume(String organizationId, String subscriptionId) {
         Subscription sub = getSubscription(organizationId, subscriptionId);
         validateTransition(sub.getStatus(), SubscriptionStatus.ACTIVE);
         sub.setStatus(SubscriptionStatus.ACTIVE);

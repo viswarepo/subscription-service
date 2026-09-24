@@ -47,7 +47,7 @@ public class SubscriptionController {
     @GetMapping("/{subscriptionId}")
     public SubscriptionResponse get(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId) {
+            @PathVariable String subscriptionId) {
         return mapper.toResponse(subscriptionService.getSubscription(organizationId, subscriptionId));
     }
 
@@ -60,10 +60,10 @@ public class SubscriptionController {
     }
 
     @Operation(summary = "List a customer's subscriptions")
-    @GetMapping
+    @GetMapping("/my/{customerId}")
     public List<SubscriptionResponse> listForCustomer(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @RequestParam Long customerId) {
+            @PathVariable String customerId) {
         return subscriptionService.getSubscriptionsForCustomer(organizationId, customerId).stream()
                 .map(mapper::toResponse).toList();
     }
@@ -72,7 +72,7 @@ public class SubscriptionController {
     @GetMapping("/{subscriptionId}/events")
     public List<SubscriptionEventResponse> events(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId) {
+            @PathVariable String subscriptionId) {
         return subscriptionService.getEvents(organizationId, subscriptionId).stream().map(mapper::toResponse).toList();
     }
 
@@ -80,7 +80,7 @@ public class SubscriptionController {
     @PostMapping("/{subscriptionId}/convert-trial")
     public SubscriptionResponse convertTrial(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId) {
+            @PathVariable String subscriptionId) {
         return mapper.toResponse(subscriptionService.convertTrial(organizationId, subscriptionId));
     }
 
@@ -88,7 +88,7 @@ public class SubscriptionController {
     @PostMapping("/{subscriptionId}/payment-succeeded")
     public SubscriptionResponse paymentSucceeded(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId) {
+            @PathVariable String subscriptionId) {
         return mapper.toResponse(subscriptionService.recordPaymentSuccess(organizationId, subscriptionId));
     }
 
@@ -96,7 +96,7 @@ public class SubscriptionController {
     @PostMapping("/{subscriptionId}/payment-failed")
     public SubscriptionResponse paymentFailed(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId) {
+            @PathVariable String subscriptionId) {
         return mapper.toResponse(subscriptionService.recordPaymentFailure(organizationId, subscriptionId));
     }
 
@@ -108,7 +108,7 @@ public class SubscriptionController {
     @PostMapping("/{subscriptionId}/renew")
     public SubscriptionResponse renew(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId) {
+            @PathVariable String subscriptionId) {
         return mapper.toResponse(subscriptionService.renew(organizationId, subscriptionId));
     }
 
@@ -119,8 +119,8 @@ public class SubscriptionController {
     @PostMapping("/{subscriptionId}/change-plan")
     public SubscriptionResponse changePlan(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId,
-            @Valid @RequestBody ChangePlanRequest request) {
+            @PathVariable String subscriptionId,
+            @RequestBody ChangePlanRequest request) {
         Subscription sub = subscriptionService.changePlan(
                 organizationId, subscriptionId, request.planCode(), request.planVersion(),
                 request.unitAmount(), request.billingCycle(), request.immediate());
@@ -134,7 +134,7 @@ public class SubscriptionController {
     @PostMapping("/{subscriptionId}/cancel")
     public SubscriptionResponse cancel(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId,
+            @PathVariable String subscriptionId,
             @RequestBody CancelRequest request) {
         return mapper.toResponse(subscriptionService.cancel(organizationId, subscriptionId, request.atPeriodEnd()));
     }
@@ -143,7 +143,7 @@ public class SubscriptionController {
     @PostMapping("/{subscriptionId}/reactivate")
     public SubscriptionResponse reactivate(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId) {
+            @PathVariable String subscriptionId) {
         return mapper.toResponse(subscriptionService.reactivate(organizationId, subscriptionId));
     }
 
@@ -151,7 +151,7 @@ public class SubscriptionController {
     @PostMapping("/{subscriptionId}/pause")
     public SubscriptionResponse pause(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId) {
+            @PathVariable String subscriptionId) {
         return mapper.toResponse(subscriptionService.pause(organizationId, subscriptionId));
     }
 
@@ -159,7 +159,7 @@ public class SubscriptionController {
     @PostMapping("/{subscriptionId}/resume")
     public SubscriptionResponse resume(
             @RequestHeader("X-Organization-Id") @NotBlank String organizationId,
-            @PathVariable Long subscriptionId) {
+            @PathVariable String subscriptionId) {
         return mapper.toResponse(subscriptionService.resume(organizationId, subscriptionId));
     }
 
