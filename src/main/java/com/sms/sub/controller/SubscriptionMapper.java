@@ -20,6 +20,7 @@ public class SubscriptionMapper {
                 customer.getExternalId(),
                 customer.getEmail(),
                 customer.getName(),
+                customer.getMobile(),
                 customer.getCreatedAt()
         );
     }
@@ -29,6 +30,7 @@ public class SubscriptionMapper {
                 sub.getId(),
                 sub.getOrganizationId(),
                 sub.getCustomer().getId(),
+                sub.getCustomer().getName(),
                 sub.getProductCode(),
                 sub.getPlanCode(),
                 sub.getPlanVersion(),

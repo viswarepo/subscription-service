@@ -17,7 +17,7 @@ public final class SubscriptionDtos {
     }
 
     public record CreateSubscriptionRequest(
-            @NotNull Long customerId,
+            @NotNull String customerId,
             @NotBlank String productCode,
             @NotBlank String planCode,
             @Min(1) int planVersion,
@@ -43,9 +43,10 @@ public final class SubscriptionDtos {
     }
 
     public record SubscriptionResponse(
-            Long id,
+            String id,
             String organizationId,
-            Long customerId,
+            String customerId,
+            String customerName,
             String productCode,
             String planCode,
             int planVersion,

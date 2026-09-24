@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface SubscriptionEventRepository extends JpaRepository<SubscriptionEvent, Long> {
+public interface SubscriptionEventRepository extends JpaRepository<SubscriptionEvent, String> {
     List<SubscriptionEvent> findBySubscription_IdAndOrganizationIdOrderByOccurredAtDesc(
-            Long subscriptionId, String organizationId);
+            String subscriptionId, String organizationId);
 }

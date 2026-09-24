@@ -25,9 +25,9 @@ public class DataSeeder {
         return args -> {
 
             // ---- Tenant: org_acme ----
-            Customer amara = subscriptionService.createCustomer("f1b419af-ea20-4f38-b3fe-5d38bfacdfde",  "amara@example.com", "Amara Okafor");
-            Customer devon = subscriptionService.createCustomer("f1b419af-ea20-4f38-b3fe-5d38bfacdfde",  "devon@example.com", "Devon Blake");
-            Customer priya = subscriptionService.createCustomer("f1b419af-ea20-4f38-b3fe-5d38bfacdfde",  "priya@example.com", "Priya Sharma");
+            Customer amara = subscriptionService.createCustomer("f1b419af-ea20-4f38-b3fe-5d38bfacdfde",  "amara@example.com", "1234567890","Amara Okafor");
+            Customer devon = subscriptionService.createCustomer("f1b419af-ea20-4f38-b3fe-5d38bfacdfde",  "devon@example.com", "1234567890","Devon Blake");
+            Customer priya = subscriptionService.createCustomer("f1b419af-ea20-4f38-b3fe-5d38bfacdfde",  "priya@example.com", "1234567890","Priya Sharma");
 
             // Amara: active PRO subscription, monthly, no trial.
             subscriptionService.createSubscription(
@@ -47,7 +47,7 @@ public class DataSeeder {
                     "f1b419af-ea20-4f38-b3fe-5d38bfacdfde", priyaFree.getId(), "PRO", 2, new BigDecimal("35.00"), BillingCycle.MONTHLY, false);
 
             // ---- Tenant: org_globex (kept separate to demonstrate tenant isolation) ----
-            Customer kenji = subscriptionService.createCustomer("org_globex",  "kenji@example.com", "Kenji Watanabe");
+            Customer kenji = subscriptionService.createCustomer("org_globex",  "kenji@example.com", "1234567890","Kenji Watanabe");
             subscriptionService.createSubscription(
                     "f1b419af-ea20-4f38-b3fe-5d38bfacdfde", kenji.getId(), "GLOBEX_SUITE", "STANDARD", 1,
                     CurrencyCode.EUR, BillingCycle.ANNUAL, new BigDecimal("240.00"), 0);

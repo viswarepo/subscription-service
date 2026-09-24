@@ -21,8 +21,8 @@ import java.time.Instant;
 public class Subscription {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     /** Tenant identifier, denormalized from the owning Customer so this table can be queried and indexed independently by tenant. */
     @Column(nullable = false)
@@ -117,7 +117,7 @@ public class Subscription {
 
     // ---- getters / setters ----
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
