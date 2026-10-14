@@ -47,8 +47,8 @@ public class UserServiceClient {
      * @throws UserAlreadyExistsException if username or email is already taken (user-service returns 409)
      * @throws UserServiceUnavailableException if user-service can't be reached or errors
      */
-    public void register(UserRegistrationRequest request) {
-        String url = userServiceBaseUrl + "/api/v1/users/register";
+    public void register(UserRegistrationRequest request, String userRole) {
+        String url = userServiceBaseUrl + "/api/v1/users/register/"+userRole;
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

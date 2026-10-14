@@ -36,9 +36,14 @@ public class CustomerProfileService {
 
         CustomerProfile profile = profileRepository.findByCustomerId(customerId)
                 .orElse(new CustomerProfile(customerId));
-
-        profile.setPhoneNumber(request.getPhoneNumber());
+        profile.setFirstName(request.getFirstName());
+        profile.setLastName(request.getLastName());
+        profile.setAlterMobile(request.getAlterMobile());
+        profile.setLandlineNumber(request.getLandlineNumber());
         profile.setAddress(request.getAddress());
+        profile.setCountry(request.getCountry());
+        profile.setState(request.getState());
+        profile.setCity(request.getCity());
         profile.setPreferredCurrency(request.getPreferredCurrency());
         profile.setLocale(request.getLocale());
         profile.setTaxId(request.getTaxId());

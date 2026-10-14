@@ -11,6 +11,8 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
     Optional<Customer> findByOrganizationIdAndExternalId(String organizationId, String externalId);
     boolean existsByOrganizationIdAndExternalId(String organizationId, String externalId);
     List<Customer> findByOrganizationId(String organizationId);
+    List<Customer> findByOrganizationIdAndCustomerType(String organizationId, String customerType);
+    List<Customer> findByCustomerType(String customerType);
 
     boolean existsByOrganizationIdAndEmailAndMobile(String organizationId, String email, String mobile);
 }
