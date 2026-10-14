@@ -1,9 +1,8 @@
 package com.sms.sub.service;
 
 import com.sms.sub.domain.*;
-import com.sms.sub.dto.RegisterRequest;
 import com.sms.sub.event.SubscriptionCreatedEvent;
-import com.sms.sub.event.SubscriptionEventPublisher;
+import com.sms.sub.producer.*;
 import com.sms.sub.exception.ConflictException;
 import com.sms.sub.exception.InvalidSubscriptionStateException;
 import com.sms.sub.exception.ResourceNotFoundException;
@@ -11,9 +10,6 @@ import com.sms.sub.repository.CustomerRepository;
 import com.sms.sub.repository.SubscriptionEventRepository;
 import com.sms.sub.repository.SubscriptionRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 //import org.springframework.web.client.RestTemplate;
@@ -28,7 +24,15 @@ import java.util.Set;
 public class SubscriptionService {
     /* Kafka even publisher/Producer */
     private final SubscriptionEventPublisher subscriptionEventPublisher;
-
+    private final AlertSubscriptionCreatedEventProducer alertSubscriptionCreatedEventProducer;
+    private final AlertSubscriptionPaysuccessEventProducer alertSubscriptionPaysuccessEventProducer;
+    private final AlertSubscriptionPayfailureEventProducer alertSubscriptionPayfailureEventProducer;
+    private final AlertSubscriptionPauseEventProducer alertSubscriptionPauseEventProducer;
+    private final AlertSubscriptionResumeEventProducer alertSubscriptionResumeEventProducer;
+    private final AlertSubscriptionCancelledEventProducer alertSubscriptionCancelledEventProducer;
+    private final AlertSubscriptionChangeplanEventProducer alertSubscriptionChangeplanEventProducer;
+    private final AlertSubscriptionReactivateProducer alertSubscriptionReactivateProducer;
+    private final AlertSubscriptionRenevEventProducer alertSubscriptionRenevEventProducer;
     /** Statuses that count as "the customer already has a live subscription to this product". */
     private static final Set<SubscriptionStatus> LIVE_STATUSES =
             Set.of(SubscriptionStatus.TRIALING, SubscriptionStatus.ACTIVE,
@@ -46,18 +50,27 @@ public class SubscriptionService {
 
     //private final RestTemplate restTemplate;
 
-    public SubscriptionService(SubscriptionEventPublisher subscriptionEventPublisher, CustomerRepository customerRepository,
+    public SubscriptionService(SubscriptionEventPublisher subscriptionEventPublisher, AlertSubscriptionCreatedEventProducer alertSubscriptionCreatedEventProducer, AlertSubscriptionPaysuccessEventProducer alertSubscriptionPaysuccessEventProducer, AlertSubscriptionPayfailureEventProducer alertSubscriptionPayfailureEventProducer, AlertSubscriptionPauseEventProducer alertSubscriptionPauseEventProducer, AlertSubscriptionResumeEventProducer alertSubscriptionResumeEventProducer, AlertSubscriptionCancelledEventProducer alertSubscriptionCancelledEventProducer, AlertSubscriptionChangeplanEventProducer alertSubscriptionChangeplanEventProducer, AlertSubscriptionReactivateProducer alertSubscriptionReactivateProducer, AlertSubscriptionRenevEventProducer alertSubscriptionRenevEventProducer, CustomerRepository customerRepository,
                                SubscriptionRepository subscriptionRepository,
                                SubscriptionEventRepository eventRepository) {
         this.subscriptionEventPublisher = subscriptionEventPublisher;
+        this.alertSubscriptionCreatedEventProducer = alertSubscriptionCreatedEventProducer;
+        this.alertSubscriptionPaysuccessEventProducer = alertSubscriptionPaysuccessEventProducer;
+        this.alertSubscriptionPayfailureEventProducer = alertSubscriptionPayfailureEventProducer;
+        this.alertSubscriptionPauseEventProducer = alertSubscriptionPauseEventProducer;
+        this.alertSubscriptionResumeEventProducer = alertSubscriptionResumeEventProducer;
+        this.alertSubscriptionCancelledEventProducer = alertSubscriptionCancelledEventProducer;
+        this.alertSubscriptionChangeplanEventProducer = alertSubscriptionChangeplanEventProducer;
+        this.alertSubscriptionReactivateProducer = alertSubscriptionReactivateProducer;
+        this.alertSubscriptionRenevEventProducer = alertSubscriptionRenevEventProducer;
         this.customerRepository = customerRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.eventRepository = eventRepository;
     }
 
-    public Customer createCustomer(String organizationId, String email, String name, String mobile) {
+    public Customer createCustomer(String organizationId, String email, String name, String mobile, String customerType) {
 
-        return customerRepository.save(new Customer(organizationId, email, name,mobile));
+        return customerRepository.save(new Customer(organizationId, email, name,mobile,customerType));
     }
 
     @Transactional(readOnly = true)
@@ -67,8 +80,12 @@ public class SubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public List<Customer> listCustomers(String organizationId) {
-        return customerRepository.findByOrganizationId(organizationId);
+    public List<Customer> listCustomers(String organizationId,String customerType) {
+        if(customerType.equals(ECustomerType.CUSTOMER.name())) {
+            return customerRepository.findByOrganizationIdAndCustomerType(organizationId, customerType);
+        }else{
+            return customerRepository.findByCustomerType(customerType);
+        }
     }
 
     /**
@@ -112,14 +129,21 @@ public class SubscriptionService {
                 customer.getId(),           // however you reference the Customer here
                 customer.getEmail(),
                 customer.getName(),
+                customer.getCustomerType(),
                 productCode,                 // whatever the actual local variable/param name is
                 planCode,
                 planVersion,
                 unitAmount,
                 currency.name(),              // .toString() if currency isn't an enum
-                billingCycle.name(),          // .toString() if billingCycle isn't an enum
-                trialDays);
+                billingCycle.name(),
+                trialDays,
+                customer.getMobile());
         subscriptionEventPublisher.publishSubscriptionCreated(event);
+
+        //Email/sms alert send to customer
+
+
+        alertSubscriptionCreatedEventProducer.alertSubscriptionCreated(event);
 
 
         return sub;
@@ -219,6 +243,23 @@ public class SubscriptionService {
         sub.touch();
         recordEvent(sub, SubscriptionEventType.RENEWED,
                 "Renewed through " + sub.getCurrentPeriodEnd());
+
+        SubscriptionCreatedEvent event = SubscriptionCreatedEvent.of(
+                sub.getId(),
+                organizationId,
+                sub.getCustomer().getId(),           // however you reference the Customer here
+                sub.getCustomer().getEmail(),
+                sub.getCustomer().getName(),
+                sub.getCustomer().getCustomerType(),
+                sub.getProductCode(),                 // whatever the actual local variable/param name is
+                sub.getPlanCode(),
+                sub.getPlanVersion(),
+                sub.getUnitAmount(),
+                sub.getCurrency().name(),              // .toString() if currency isn't an enum
+                sub.getBillingCycle().name(),
+                0,
+                sub.getCustomer().getMobile());
+        alertSubscriptionRenevEventProducer.alertSubscriptionRenew(event);
         return sub;
     }
 

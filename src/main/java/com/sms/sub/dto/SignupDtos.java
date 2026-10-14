@@ -23,17 +23,15 @@ public final class SignupDtos {
             String name,
             @NotBlank String username,
             @NotBlank String password,
-            @NotBlank String mobile,
-            @NotNull @Valid CreateSubscriptionRequest planSelection
-    ) {
+            @NotBlank String mobile
+     ) {
     }
 
     public record SignupResponse(
             String customerId,
             String username,
             String organizationId,
-            String mobile,
-            SubscriptionResponse subscription
+            String mobile
     ) {
     }
 }

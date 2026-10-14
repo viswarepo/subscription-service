@@ -20,7 +20,7 @@ import java.math.BigDecimal;
 //@Configuration
 public class DataSeeder {
 
-    @Bean
+    /*@Bean
     public CommandLineRunner seed(SubscriptionService subscriptionService) {
         return args -> {
 
@@ -57,5 +57,5 @@ public class DataSeeder {
                     + "Try POST /api/v1/subscriptions/process-billing-cycle?asOf=<future ISO instant> "
                     + "to see Devon's trial expire and Priya's upgrade apply at renewal.");
         };
-    }
+    }*/
 }

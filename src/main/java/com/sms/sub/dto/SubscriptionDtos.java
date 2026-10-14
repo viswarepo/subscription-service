@@ -17,7 +17,7 @@ public final class SubscriptionDtos {
     }
 
     public record CreateSubscriptionRequest(
-            @NotNull String customerId,
+            String customerId,
             @NotBlank String productCode,
             @NotBlank String planCode,
             @Min(1) int planVersion,

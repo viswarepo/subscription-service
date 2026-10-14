@@ -30,6 +30,7 @@ public record SubscriptionCreatedEvent(
         String customerId,
         String customerEmail,
         String customerName,
+        String customerType,
         String productCode,
         String planCode,
         int planVersion,
@@ -37,6 +38,7 @@ public record SubscriptionCreatedEvent(
         String currency,
         String billingCycle,
         int trialDays,
+        String mobile,
         Instant occurredAt
 ) {
     public static SubscriptionCreatedEvent of(
@@ -45,13 +47,15 @@ public record SubscriptionCreatedEvent(
             String customerId,
             String customerEmail,
             String customerName,
+            String customerType,
             String productCode,
             String planCode,
             int planVersion,
             BigDecimal unitAmount,
             String currency,
             String billingCycle,
-            int trialDays) {
+            int trialDays,
+            String mobile) {
         return new SubscriptionCreatedEvent(
                 UUID.randomUUID(),
                 subscriptionId,
@@ -59,6 +63,7 @@ public record SubscriptionCreatedEvent(
                 customerId,
                 customerEmail,
                 customerName,
+                customerType,
                 productCode,
                 planCode,
                 planVersion,
@@ -66,6 +71,7 @@ public record SubscriptionCreatedEvent(
                 currency,
                 billingCycle,
                 trialDays,
+                mobile,
                 Instant.now());
     }
 }

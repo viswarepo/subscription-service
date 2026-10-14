@@ -21,6 +21,7 @@ public class SubscriptionMapper {
                 customer.getEmail(),
                 customer.getName(),
                 customer.getMobile(),
+                customer.getCustomerType(),
                 customer.getCreatedAt()
         );
     }

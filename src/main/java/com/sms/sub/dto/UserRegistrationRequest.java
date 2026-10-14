@@ -19,9 +19,9 @@ public class UserRegistrationRequest {
     private String username;
     private String email;
     private String password;
-    private String firstName;
-    private String lastName;
-    private ERole role;
+    private String fullName;
+    private String role;
     private String oraganizationId; // sic - matches user-service's UserRequestDTO
     private String customerId;
+    private String customerType;
 }
