@@ -13,7 +13,10 @@ public class CustomerProfile {
     @Column(nullable = false, unique = true)
     private String customerId; // FK to Customer.id
 
-    private String phoneNumber;
+    private String firstName;
+    private String lastName;
+    private String alterMobile;
+    private String landlineNumber;
     private String address;
     private String city;
     private String state;
@@ -29,15 +32,63 @@ public class CustomerProfile {
     }
 
     // Getters and setters
-    public String getId() { return id; }
-    public String getCustomerId() { return customerId; }
-    public void setCustomerId(String customerId) { this.customerId = customerId; }
 
-    public String getPhoneNumber() { return phoneNumber; }
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getAlterMobile() {
+        return alterMobile;
+    }
+
+    public void setAlterMobile(String alterMobile) {
+        this.alterMobile = alterMobile;
+    }
+
+    public String getLandlineNumber() {
+        return landlineNumber;
+    }
+
+    public void setLandlineNumber(String landlineNumber) {
+        this.landlineNumber = landlineNumber;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
     public String getCity() {
         return city;
@@ -63,12 +114,27 @@ public class CustomerProfile {
         this.country = country;
     }
 
-    public String getPreferredCurrency() { return preferredCurrency; }
-    public void setPreferredCurrency(String preferredCurrency) { this.preferredCurrency = preferredCurrency; }
+    public String getPreferredCurrency() {
+        return preferredCurrency;
+    }
 
-    public String getLocale() { return locale; }
-    public void setLocale(String locale) { this.locale = locale; }
+    public void setPreferredCurrency(String preferredCurrency) {
+        this.preferredCurrency = preferredCurrency;
+    }
 
-    public String getTaxId() { return taxId; }
-    public void setTaxId(String taxId) { this.taxId = taxId; }
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public String getTaxId() {
+        return taxId;
+    }
+
+    public void setTaxId(String taxId) {
+        this.taxId = taxId;
+    }
 }

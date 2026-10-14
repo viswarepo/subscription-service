@@ -13,8 +13,14 @@ public class CustomerProfileResponse {
     private Instant createdAt;
 
     // Extended profile fields
-    private String phoneNumber;
+    private String firstName;
+    private String lastName;
+    private String alterMobile;
+    private String landlineNumber;
     private String address;
+    private String city;
+    private String state;
+    private String country;
     private String preferredCurrency;
     private String locale;
     private String taxId;
@@ -30,8 +36,14 @@ public class CustomerProfileResponse {
         response.createdAt = customer.getCreatedAt();
 
         if (profile != null) {
-            response.phoneNumber = profile.getPhoneNumber();
+            response.firstName = profile.getFirstName();
+            response.lastName = profile.getLastName();
+            response.alterMobile = profile.getAlterMobile();
+            response.landlineNumber = profile.getLandlineNumber();
             response.address = profile.getAddress();
+            response.country = profile.getCountry();
+            response.state = profile.getState();
+            response.city = profile.getCity();
             response.preferredCurrency = profile.getPreferredCurrency();
             response.locale = profile.getLocale();
             response.taxId = profile.getTaxId();
@@ -41,15 +53,72 @@ public class CustomerProfileResponse {
     }
 
     // Getters
-    public String getId() { return id; }
-    public String getOrganizationId() { return organizationId; }
-    public String getExternalId() { return externalId; }
-    public String getEmail() { return email; }
-    public String getName() { return name; }
-    public Instant getCreatedAt() { return createdAt; }
-    public String getPhoneNumber() { return phoneNumber; }
-    public String getAddress() { return address; }
-    public String getPreferredCurrency() { return preferredCurrency; }
-    public String getLocale() { return locale; }
-    public String getTaxId() { return taxId; }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public String getAlterMobile() {
+        return alterMobile;
+    }
+
+    public String getLandlineNumber() {
+        return landlineNumber;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public String getPreferredCurrency() {
+        return preferredCurrency;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public String getTaxId() {
+        return taxId;
+    }
 }

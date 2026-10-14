@@ -1,6 +1,7 @@
-package com.sms.sub.event;
+package com.sms.sub.producer;
 
 import com.sms.sub.config.KafkaTopicConfig;
+import com.sms.sub.event.SubscriptionCreatedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;

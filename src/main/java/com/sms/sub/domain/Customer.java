@@ -34,12 +34,15 @@ public class Customer {
     private String externalId;
 
     @Column(nullable = false)
-    private String email="9876543210";
+    private String email;
 
     @Column(nullable = false)
     private String mobile;
 
     private String name;
+
+    @Column(nullable = false)
+    private String customerType;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
@@ -48,12 +51,13 @@ public class Customer {
         // JPA
     }
 
-    public Customer(String organizationId, String email, String name, String mobile) {
+    public Customer(String organizationId, String email, String name, String mobile, String customerType) {
         this.organizationId = organizationId;
         this.externalId = externalId;
         this.email = email;
         this.name = name;
         this.mobile = mobile;
+        this.customerType = customerType;
     }
 
     public String getId() {
@@ -84,6 +88,14 @@ public class Customer {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCustomerType() {
+        return customerType;
+    }
+
+    public void setCustomerType(String customerType) {
+        this.customerType = customerType;
     }
 
     public Instant getCreatedAt() {
